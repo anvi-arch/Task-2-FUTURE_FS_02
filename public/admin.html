@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mini CRM Dashboard</title>
+  <style>
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f4f7fb;
+}
+
+.dashboard{
+  display:flex;
+  height:100vh;
+}
+
+/* Sidebar */
+.sidebar{
+  width:220px;
+  background:#111827;
+  color:white;
+  padding:20px;
+}
+
+.sidebar h2{
+  text-align:center;
+  margin-bottom:30px;
+}
+
+.sidebar ul{
+  list-style:none;
+  padding:0;
+}
+
+.sidebar li{
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:10px;
+  cursor:pointer;
+}
+
+.sidebar li:hover,
+.sidebar .active{
+  background:#4f46e5;
+}
+
+/* Main */
+.main{
+  flex:1;
+  padding:25px;
+}
+
+/* Topbar */
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.topbar input{
+  padding:10px;
+  width:250px;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
+
+/* Card */
+.card{
+  background:white;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+}
+
+/* Table */
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+
+th, td{
+  padding:12px;
+  text-align:left;
+}
+
+th{
+  background:#f1f5f9;
+}
+
+tr:nth-child(even){
+  background:#f9fafb;
+}
+</style>
+</head>
+<body>
+<div class="dashboard">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>CRM</h2>
+    <ul>
+      <li class="active">Dashboard</li>
+      <li>Leads</li>
+      <li>Analytics</li>
+      <li>Settings</li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <div class="topbar">
+      <h1>Admin Dashboard</h1>
+      <input type="text" placeholder="Search leads...">
+    </div>
+
+    <div class="card">
+      <h3>Leads List</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="leadTable"></tbody>
+      </table>
+
+    </div>
+
+  </main>
+</div>
+  
+
+ <script>
+async function loadLeads(){
+  const res = await fetch("http://localhost:8000/api/leads");
+  const leads = await res.json();
+
+  const table = document.getElementById("leadTable");
+  table.innerHTML = "";
+
+  leads.forEach(lead=>{
+    table.innerHTML += `
+      <tr>
+        <td>${lead.name}</td>
+        <td>${lead.email}</td>
+        <td>${lead.source}</td>
+        <td>
+          <select onchange="updateStatus('${lead._id}', this.value)">
+            <option ${lead.status=="new"?"selected":""}>new</option>
+            <option ${lead.status=="contacted"?"selected":""}>contacted</option>
+            <option ${lead.status=="converted"?"selected":""}>converted</option>
+          </select>
+        </td>
+        <td>${lead.notes}</td>
+      </tr>
+    `;
+  });
+}
+
+    async function updateStatus(id, status){
+  await fetch(`http://localhost:8000/api/leads/${id}/status`,{
+    method:"PUT",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body: JSON.stringify({ status })
+  });
+}
+
+loadLeads();
+</script>
+</body>
+</html>
